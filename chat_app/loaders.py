@@ -6,7 +6,7 @@ class Loader:
         Example:
         .. code-block:: python
 
-            from loader import Loader
+            from loaders import Loader
 
             source_files_path = "../guides"
             loader_type = "Directory"

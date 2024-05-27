@@ -19,7 +19,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 # Loaders
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.document_loaders import DirectoryLoader
-from loaders.loader import Loader
+from loaders import Loader
 
 class LocalEmbedding:
     """LocalEmbedding to embed and store documents locally
@@ -28,7 +28,7 @@ class LocalEmbedding:
     Example:
         .. code-block:: python
 
-            from local_embedding import LocalEmbedding
+            from embeddings import LocalEmbedding
 
             source_files_path = "../guides"
             local_embedding_path = "../embedding_index"
