@@ -139,3 +139,4 @@ faiss-cpu==1.8.0
 langchain-community==0.0.31
 unstructured==0.14.2
 redis==5.0.4
+streamlit-option-menu==0.3.12

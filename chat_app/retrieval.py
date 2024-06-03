@@ -12,17 +12,18 @@ from langchain_core.runnables import (
     ConfigurableFieldSpec
 )
 from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.chat_message_histories import RedisChatMessageHistory
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.messages import BaseMessage
 from typing import List
 
 class Retrieval:
-    def __init__(self, vstore, llm_type, llm_model, enable_chat_history=False):
+    def __init__(self, vstore, llm_type, llm_model, enable_chat_history=False, session_history_store="InMemory"):
         self.vstore = vstore
         self.llm_model = llm_model
         self.llm = self._get_llm(llm_type)
         self.enable_chat_history = enable_chat_history
+        self.session_history_callable = self._get_session_history_store(session_history_store)
         self.store = {}
         self.rag = None
     
@@ -40,6 +41,14 @@ class Retrieval:
         else:
             raise Exception(f"LLM of type {llm_type} not supportted")
     
+    def _get_session_history_store(self, session_history_store):
+        if session_history_store == "InMemory":
+            return self.get_session_history_in_memory
+        elif session_history_store == "Redis":
+            return self.get_session_history_redis
+        else:
+            raise Exception(f"Session history store of type {session_history_store} not supportted")
+
     def set_memory():
         memory = ConversationBufferMemory(
             memory_key="chat_history",
@@ -82,7 +91,7 @@ class Retrieval:
 
         self.rag = RunnableWithMessageHistory(
             rag_chain,
-            self.get_session_history,
+            self.get_session_history_redis,
             input_messages_key="input",
             history_messages_key="chat_history",
             output_messages_key="answer",
@@ -119,10 +128,14 @@ class Retrieval:
             )["answer"]
             print("AI:", answer)
 
-    def get_session_history(self, user_id: str, conversation_id: str) -> BaseChatMessageHistory:
+    def get_session_history_in_memory(self, user_id: str, conversation_id: str) -> BaseChatMessageHistory:
         if (user_id, conversation_id) not in self.store:
             self.store[(user_id, conversation_id)] = InMemoryHistory()
         return self.store[(user_id, conversation_id)]
+
+    def get_session_history_redis(self, user_id: str, conversation_id: str) -> BaseChatMessageHistory:
+        session_id = user_id + ':' + conversation_id
+        return RedisChatMessageHistory(session_id, url="redis://localhost:6379")
 
 # For production use cases, you will want to use a persistent implementation
 # of chat message history, such as ``RedisChatMessageHistory``.
