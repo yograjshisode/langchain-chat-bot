@@ -48,7 +48,7 @@ def render_sidebar(username, active_sessions_alias, redis_client):
         selected = option_menu(
             menu_title="Active Sessions",
             options=active_sessions_alias_keys,
-            default_index=index,
+            manual_select=index,
             key="session_menu"
         )
         print(st.session_state.user_details)
