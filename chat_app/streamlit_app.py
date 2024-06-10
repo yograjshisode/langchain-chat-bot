@@ -43,12 +43,17 @@ def set_session_alias(session_id, redis_client):
 
 def render_sidebar(username, active_sessions_alias, redis_client):
     active_sessions_alias_keys = list(active_sessions_alias.keys()) + ["New Chat"]
+    icons= ["display"] * len(active_sessions_alias_keys)
     with st.sidebar:
-        index = active_sessions_alias_keys.index(st.session_state.default_selected)
+        index = None
+        if st.session_state.default_selected:
+            index = active_sessions_alias_keys.index(st.session_state.default_selected)
+        st.session_state.default_selected = None
         selected = option_menu(
             menu_title="Active Sessions",
             options=active_sessions_alias_keys,
             manual_select=index,
+            icons = icons,
             key="session_menu"
         )
         print(st.session_state.user_details)
@@ -58,7 +63,7 @@ def render_sidebar(username, active_sessions_alias, redis_client):
             redis_client.set_alias({f"alias:{session_id}": "New Chat"})
         else:
             session_id = str(active_sessions_alias[selected])
-            st.session_state.default_selected = selected
+            # st.session_state.default_selected = selected
         set_session_alias(session_id, redis_client)
         return session_id
 
